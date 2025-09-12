@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+#include "fc_connect.h"
 
 #include <QApplication>
 

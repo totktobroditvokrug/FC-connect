@@ -1,5 +1,5 @@
-#include "mainwindow.h"
-#include "ui_mainwindow.h"
+#include "fc_connect.h"
+#include "ui_fc_connect.h"
 
 #include "tab_plot.h"
 

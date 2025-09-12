@@ -1,5 +1,5 @@
-#include "mainwindow.h"
-#include "ui_mainwindow.h"
+#include "fc_connect.h"
+#include "ui_fc_connect.h"
 #include "stylehelper.h"
 
 void MainWindow::on_pushButton_searchListPort_clicked() // список доступных портов
@@ -435,4 +435,182 @@ void MainWindow::init_setConfigAdapter()
     QString dataWriteString = AddCRC(setFreqCan, 2).toHex() + AddCRC(AD_COM_SET_READ_ALL_CAN, 2).toHex();
     writeSerialPort(dataWriteString);
 }
+
+
+
+// ---------- PEAKCAN adapter -----------
+
+void MainWindow::on_pushButton_findPEAKCAN_clicked()
+{
+    on_actionConnect_triggered();
+}
+
+void MainWindow::processReceivedFrames()
+{
+    if (!mCanDevice) {
+        return;
+    }
+
+//    qDebug("Read Frame");
+
+    while(mCanDevice->framesAvailable()) {
+        const QCanBusFrame frame = mCanDevice->readFrame();
+        QString view;
+
+        if (frame.frameType() == QCanBusFrame::ErrorFrame) {
+            view = mCanDevice->interpretErrorFrame(frame);
+        } else {
+            view = frame.toString();
+        }
+
+        const QString time = QString::fromLatin1("%1.%2  ")
+                                 .arg(frame.timeStamp().seconds(), 10, 10, QLatin1Char(' '))
+                                 .arg(frame.timeStamp().microSeconds()/100, 4, 10, QLatin1Char('0'));
+
+        QString flags = QLatin1String(" --- ");
+        if (frame.hasBitrateSwitch()) {
+            flags[1] = QLatin1Char('B');
+        }
+        if (frame.hasErrorStateIndicator()) {
+            flags[2] = QLatin1Char('E');
+        }
+        if (frame.hasLocalEcho()) {
+            flags[3] = QLatin1Char('L');
+        }
+
+        QByteArray payload = frame.payload();
+//        qDebug("0x%x  0x%x", frame.frameId(), (char)payload[0]);
+//        qDebug("%s  %s  %s",time.toStdString().c_str(), flags.toStdString().c_str(), view.toStdString().c_str());
+
+    }
+
+}
+
+void MainWindow::processErrors(QCanBusDevice::CanBusError error) const
+{
+
+    qDebug("Error handling");
+    switch (error) {
+    case QCanBusDevice::ReadError:
+    case QCanBusDevice::WriteError:
+    case QCanBusDevice::ConnectionError:
+    case QCanBusDevice::ConfigurationError:
+    case QCanBusDevice::UnknownError:
+        qDebug("Error:%s", mCanDevice->errorString().toStdString().c_str());
+        //m_status->setText(m_canDevice->errorString());
+        break;
+    default:
+        break;
+    }
+}
+
+// Send a message
+void MainWindow::sendCaptureDeviceMsg(int canId)
+{
+    qDebug("canId:%d", canId);
+    QCanBusFrame frame;
+    uint StdId, ExtId;
+    QByteArray payload;
+    payload.resize(8);
+
+    ExtId = 0x18EF80C8|(canId<<8);
+    payload[0]= 0x70;
+    payload[1]= 0xFF;
+    payload[2]= 0xFF;
+    payload[3]= 0xFF;
+    payload[4]= 0xFF;
+    payload[5]= 0xFF;
+    payload[6]= 0xFF;
+    payload[7]= 0xFF;
+
+    frame.setFrameType(QCanBusFrame::DataFrame);
+    frame.setExtendedFrameFormat(true); //
+    frame.setTimeStamp(QDateTime::currentMSecsSinceEpoch());
+
+    frame.setFrameId(ExtId);
+    frame.setPayload(payload);
+
+    if (mIsConnected) {
+        mCanDevice->writeFrame(frame);
+      //  msleep(25);
+    }
+
+}
+
+//void MainWindow::msleep(uint msec)
+//{
+//    QTime sleepTime = QTime::currentTime().addMSecs(msec);
+//    while(QTime::currentTime() < sleepTime) {
+//        QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+//    }
+//}
+
+void MainWindow::on_actionConnect_triggered()
+{
+    qDebug("Connect triggered");
+    QString errString;
+
+    // проверка наличия плагина peakcan
+    if (QCanBus::instance()->plugins().contains(QStringLiteral("peakcan"))) {
+        qDebug("peakcan plugin available");
+        ui->textEdit_messagePEAKCAN->setText("peakcan plugin available");
+    } else {
+        qDebug("peakcan plugin not available");
+        ui->textEdit_messagePEAKCAN->setText("peakcan plugin not available");
+    }
+
+    mCanDeviceInfo = QCanBus::instance()->availableDevices("peakcan");
+    ;
+    if (!mCanDeviceInfo.isEmpty()) {
+    //    QList<QCanBusDeviceInfo> devicesList =  mCanDeviceInfo.begin()->name().toStdString().c_str();
+        qDebug("%s", mCanDeviceInfo.begin()->name().toStdString().c_str());
+        ui->textEdit_messagePEAKCAN->append("available CAN devices:");
+        ui->textEdit_messagePEAKCAN->append(mCanDeviceInfo.begin()->name().toStdString().c_str());
+        //for (auto rate : )
+        // +
+    } else {
+        qDebug("Can not find available peakcan device");
+        ui->textEdit_messagePEAKCAN->append("Can not find available peakcan device");
+    }
+
+
+
+    mCanDevice = QCanBus::instance()->createDevice(QStringLiteral("peakcan"), QStringLiteral("usb0"), &errString);
+    if (!mCanDevice) {
+        qDebug("ErrString:%s", errString.toStdString().c_str());
+    } else {
+
+        connect(mCanDevice, &QCanBusDevice::errorOccurred, this, &MainWindow::processErrors);
+        connect(mCanDevice, &QCanBusDevice::framesReceived, this , &MainWindow::processReceivedFrames);
+
+        //connect(m_canDevice, &QCanBusDevice::framesReceived, this, &MainWindow::processReceivedFrames);
+        //connect(m_canDevice, &QCanBusDevice::framesWritten, this, &MainWindow::processFramesWritten);
+
+
+        mCanDevice->setConfigurationParameter(QCanBusDevice::BitRateKey, QVariant(250000)); // baud rate
+        //mCanDevice->setConfigurationParameter(QCanBusDevice::ErrorFilterKey, QVariant(0x1ffffff));
+
+        mIsConnected = mCanDevice->connectDevice();
+        if (mIsConnected) {
+            qDebug("CanDevice connect ok.");
+        } else {
+            qDebug("CanDevcie connect error.");
+        }
+
+    }
+}
+
+
+void MainWindow::on_pushButton_writePeakCan_clicked()
+{
+    int CanId = 2;
+    sendCaptureDeviceMsg(CanId);
+}
+
+
+void MainWindow::on_pushButton_readPeakCan_clicked()
+{
+    processReceivedFrames();
+}
+
 
