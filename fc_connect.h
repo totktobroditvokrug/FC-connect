@@ -91,6 +91,13 @@ private slots:
  //   void msleep(uint msec);
     void on_actionConnect_triggered();
 
+    void setBitRatePeakCan(quint16 commandCanFreqInv);  // частота кэн шины
+    void connectPeakCAN();
+    void disconnectPeakCAN();
+
+    QString handlePeakCanParsing(QCanBusFrame frame); // форматирование данных от адаптера PEAKCAN
+
+
     // элементы меню
     void on_actionQuit_triggered(); // выход из приложения
 
@@ -347,6 +354,8 @@ private slots:
     void on_pushButton_writePeakCan_clicked();
 
     void on_pushButton_readPeakCan_clicked();
+
+    void on_pushButton_closePeakCan_clicked();
 
 private:
     Ui::MainWindow *ui;

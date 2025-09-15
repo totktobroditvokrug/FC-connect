@@ -71,10 +71,11 @@ void MainWindow::addPointToGraph(){
         return;
     }
 
-    if(ui->tabWidget_registerWidget->currentIndex() != 7){
+    // if(ui->tabWidget_registerWidget->currentIndex() != 7){
         // qDebug() << "графики не рисуем";
-        return; // если виджет неактивен, графики не рисуем
-    }
+    //    return; // если виджет неактивен, графики не рисуем
+
+    // }
 
     if(plot_1_isBusy || plot_2_isBusy){ // проверка, что программа не запустится, если предыдущая не закончила
         ui->lineEdit_freqPlot->setStyleSheet("color: red");

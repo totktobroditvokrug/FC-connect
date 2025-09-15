@@ -66,7 +66,7 @@
              <x>0</x>
              <y>0</y>
              <width>1048</width>
-             <height>805</height>
+             <height>841</height>
             </rect>
            </property>
            <layout class="QGridLayout" name="gridLayout_4">
@@ -116,13 +116,6 @@
                       <string>CAN control</string>
                      </property>
                      <layout class="QGridLayout" name="gridLayout_28">
-                      <item row="0" column="0">
-                       <widget class="QPushButton" name="pushButton_findPEAKCAN">
-                        <property name="text">
-                         <string>Find PEAKCAN</string>
-                        </property>
-                       </widget>
-                      </item>
                       <item row="1" column="0">
                        <widget class="QPushButton" name="pushButton_writePeakCan">
                         <property name="text">
@@ -130,10 +123,24 @@
                         </property>
                        </widget>
                       </item>
+                      <item row="0" column="0">
+                       <widget class="QPushButton" name="pushButton_findPEAKCAN">
+                        <property name="text">
+                         <string>Find PEAKCAN</string>
+                        </property>
+                       </widget>
+                      </item>
                       <item row="2" column="0">
                        <widget class="QPushButton" name="pushButton_readPeakCan">
                         <property name="text">
                          <string>Read</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="3" column="0">
+                       <widget class="QPushButton" name="pushButton_closePeakCan">
+                        <property name="text">
+                         <string>Close PEAKCAN</string>
                         </property>
                        </widget>
                       </item>

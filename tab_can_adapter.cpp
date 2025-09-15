@@ -456,6 +456,11 @@ void MainWindow::processReceivedFrames()
     while(mCanDevice->framesAvailable()) {
         const QCanBusFrame frame = mCanDevice->readFrame();
         QString view;
+        QString message;
+
+        message = handlePeakCanParsing(frame);
+
+        ui->textEdit_dataRead->append(message);
 
         if (frame.frameType() == QCanBusFrame::ErrorFrame) {
             view = mCanDevice->interpretErrorFrame(frame);
@@ -575,7 +580,8 @@ void MainWindow::on_actionConnect_triggered()
 
 
 
-    mCanDevice = QCanBus::instance()->createDevice(QStringLiteral("peakcan"), QStringLiteral("usb0"), &errString);
+    mCanDevice = QCanBus::instance()->createDevice(QStringLiteral("peakcan"),
+                                                   QStringLiteral("usb0"), &errString);
     if (!mCanDevice) {
         qDebug("ErrString:%s", errString.toStdString().c_str());
     } else {
@@ -586,18 +592,35 @@ void MainWindow::on_actionConnect_triggered()
         //connect(m_canDevice, &QCanBusDevice::framesReceived, this, &MainWindow::processReceivedFrames);
         //connect(m_canDevice, &QCanBusDevice::framesWritten, this, &MainWindow::processFramesWritten);
 
-
         mCanDevice->setConfigurationParameter(QCanBusDevice::BitRateKey, QVariant(250000)); // baud rate
         //mCanDevice->setConfigurationParameter(QCanBusDevice::ErrorFilterKey, QVariant(0x1ffffff));
 
-        mIsConnected = mCanDevice->connectDevice();
-        if (mIsConnected) {
-            qDebug("CanDevice connect ok.");
-        } else {
-            qDebug("CanDevcie connect error.");
-        }
+        connectPeakCAN();
 
     }
+}
+
+void MainWindow::connectPeakCAN()
+{
+    mIsConnected = mCanDevice->connectDevice();
+    if (mIsConnected) {
+        qDebug("CanDevice connect ok.");
+    } else {
+        qDebug("CanDevice connect error.");
+    }
+}
+
+void MainWindow::disconnectPeakCAN()
+{
+    mCanDevice->disconnectDevice();
+
+    qDebug("CanDevice is closed");
+}
+
+void MainWindow::setBitRatePeakCan(quint16 commandCanFreqInv)
+{
+    if (!!mCanDevice) mCanDevice->setConfigurationParameter(QCanBusDevice::BitRateKey, QVariant(commandCanFreqInv)); // baud rate
+    qDebug()<< "set BitRate peakcan:" << commandCanFreqInv;
 }
 
 
@@ -612,5 +635,21 @@ void MainWindow::on_pushButton_readPeakCan_clicked()
 {
     processReceivedFrames();
 }
+
+
+void MainWindow::on_pushButton_closePeakCan_clicked()
+{
+    disconnectPeakCAN();
+}
+
+QString MainWindow::handlePeakCanParsing(QCanBusFrame frame)
+{
+    QString message;
+    message = frame.toString();
+    qDebug()<< message;
+
+    return(message);
+} // форматирование данных от адаптера PEAKCAN
+
 
 

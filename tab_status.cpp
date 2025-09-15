@@ -547,7 +547,7 @@ void MainWindow::checkInvStatus_5()
     }
     ui->checkBox_paramsOutChange->setEnabled(true);
 
-    // при запрете на изменение скорсти CAN не даем активность комбобоксу скоростей
+    // при запрете на изменение скорости CAN не даем активность комбобоксу скоростей
     if(ui->checkBox_allowCAN_freqChanges->isChecked())  ui->comboBox_canFreqInv->setEnabled(true);
 
     ui->groupBox_expBoard->setEnabled(true);
@@ -1010,11 +1010,18 @@ void MainWindow::on_comboBox_canFreqInv_currentIndexChanged(int index)
                             glueString(changeHiLowBytes_uint(commandCanFreqInv), RegnumClass::IREG_INV_INT_CTRL)), 2).toHex();
 //     ui->textEdit_commandCRC->append(commandString);
     writeSerialPort(commandString);
+    setBitRatePeakCan(commandCanFreqInv);
 }
 
 void MainWindow::on_checkBox_allowCAN_freqChanges_clicked(bool checked)
 {
-    if(checked) QMessageBox::warning(this, "Внимание","Изменение скорости CAN шины. Возможен конфлик скоростей и потеря связи.");
+    if(checked)
+
+    {
+        QMessageBox::warning(this, "Внимание","Изменение скорости CAN шины."
+                                              " Возможен конфлик скоростей и потеря связи.");
+        ui->comboBox_canFreqInv->setEnabled(true);
+    }
     else ui->comboBox_canFreqInv->setEnabled(false);
 }
 

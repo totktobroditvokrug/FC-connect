@@ -150,7 +150,7 @@ void MainWindow::regDisplayTable()
 {
     // checkInvertorStatus();
 
-    if(ui->tabWidget_registerWidget->currentIndex() != 2) return; // если виджет неактивен, таблицей не занимаемся
+    // if(ui->tabWidget_registerWidget->currentIndex() != 2) return; // если виджет неактивен, таблицей не занимаемся
 
 
     getFreqInv();
