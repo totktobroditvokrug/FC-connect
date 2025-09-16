@@ -10,6 +10,9 @@ tab_vector::tab_vector()
 }
 
 void MainWindow::checkVector(){
+
+ //   qDebug() << "checkVector";
+
     int Uconv = int(regDataArray[RegnumClass::IREG_UOUT].regValueScaled);
 
  //   ui->lineEdit_UconvMax->setText(QString::number(regDataArray[RegnumClass::IREG_UOUT].max.Reg16, 10));

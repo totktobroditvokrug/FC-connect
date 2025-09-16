@@ -42,6 +42,7 @@ void MainWindow::initStatus()
 //---------- проверка статуса работы инвертора
 void MainWindow::checkStatus()
 {
+  //  qDebug() << "checkStatus";
     checkInvStatus();
     checkInvStatus_2();
     checkInvStatus_3();

@@ -11,12 +11,12 @@ void MainWindow::readStream()
     bool checkExtended = ui->checkBox_canExtended->checkState();
     bool checkAnswer = ui->checkBox_adapterAnswer->checkState();
 
-    // qDebug() << "запуск чтения порта";
+ //   qDebug() << "запуск чтения порта: readStream";
 
     dataRead.clear();
     while (serial->waitForReadyRead(30))
     {
-        qint64 bytesFromAdapter = serial->bytesAvailable();
+        quint64 bytesFromAdapter = serial->bytesAvailable(); // поменять на quint!!!
         if (bytesFromAdapter > 8) // если пришло достаточное количество байт, то читаем
         {
             ui->lineEdit_availableByte->setText(QString::number(bytesFromAdapter, 10));
@@ -36,7 +36,7 @@ void MainWindow::readStream()
             if (parsingDataList.size() > 0){ // если ответ не нулевой, выводим его в текстовое поле регулируемой длины
                 if(ui->radioButton_byChekBox->isChecked()) ui->textEdit_dataRead->append(parsingDataList.join("\n"));
             }
-
+// ошибка перед этим местом
             regDisplayTable(); // вывод таблицы регистров
             sampleDisplayTable(); // вывод таблицы измерений
             displayHashID();  // вывод принятых пакетов по ID

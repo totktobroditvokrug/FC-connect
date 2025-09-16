@@ -157,7 +157,11 @@ void MainWindow::regDisplayTable()
     setRegistersCombobox();
 
     if( ui->tableRegister->signalsBlocked()) ui->tableRegister->blockSignals(false);
-    for(int i = 0; i <= ui->tableRegister->rowCount(); i++){
+    auto  tableRegisterSize = ui->tableRegister->rowCount();
+
+ //   qDebug() << "вывод таблицы регистров. tableRegisterSize = " << tableRegisterSize;
+
+    for(auto i = 0; i <= tableRegisterSize; i++){
 
         QTableWidgetItem *currentRegNum = ui->tableRegister->item(i, 0); // номер регистра из нулевого столбца
 

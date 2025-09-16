@@ -4,6 +4,8 @@
 // Поле хэш-таблиц стандартного и расширенного CAN
 void MainWindow::displayHashID()
 {
+  //  qDebug() << "displayHashID";
+
     if(ui->tabWidget_registerWidget->currentIndex() != 0) return; // если виджет неактивен, хэш не выводим
     QStringList canFromHash;
     canFromHash.clear();
@@ -124,7 +126,11 @@ void MainWindow::sampleDisplayTable()
 {
   //  if(ui->tabWidget_registerWidget->currentIndex() != 3) return; // если виджет неактивен, таблицей не занимаемся
 
-    for(int i = 0; i <= ui->tableSamples->rowCount(); i++){
+    auto tableSampleSize = ui->tableSamples->rowCount();
+
+  //  qDebug() << "вывод таблицы измерений. tableSampleSize = " << tableSampleSize;
+
+    for(auto i = 0; i <= tableSampleSize; i++){
 
         QTableWidgetItem *currentSampleNum = ui->tableSamples->item(i, 0); // номер измерения из нулевого столбца
 

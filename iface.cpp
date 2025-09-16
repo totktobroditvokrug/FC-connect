@@ -112,7 +112,10 @@ void handleAllStandartDataCan(
 
     //----------- Заполняем структуру samples стандартного CAN ----------
 
+    // qDebug() << "Заполняем структуры CAN. idWhole = " << idWhole;
+
     if((idWhole >= SampleCanIdClass::CAN_START_SAMPLE_ID) && (idWhole <= SampleCanIdClass::CAN_END_SAMPLE_ID)){
+       // qDebug() << "samples стандартного CAN";
         sampleDataArray[idWhole].time_stamp_32 = time_stamp_32; // метка времени по номеру ID
         sampleDataArray[idWhole].value.LowerByte = quint8(arrayDataFromCAN[6]);
         sampleDataArray[idWhole].value.UpperByte = quint8(arrayDataFromCAN[7]);
@@ -151,12 +154,16 @@ void handleAllStandartDataCan(
         }
 
         sampleDataArray[idWhole].flagNewData = true;
-        //  qDebug() << sampleDataArray[idWhole].displayString;
+
+          // qDebug() << sampleDataArray[idWhole].displayString;
     }
     else{
         //----------- Заполняем структуру регистров ---------
         switch (idWhole) {  // проверяем пришедшие данные на принадлежность к SHOW, SCALES
         case REGISTER_SHOW_ID: { // если пришел show регистр
+
+            // qDebug() << "пришел show регистр";
+
             QString regName; // имя регистра по regNumList
             quint8 regNum = quint8(arrayDataFromCAN[6]); // если пришел регистр, то в этом месте будет его номер
             regName = regNumList[regNum].leftJustified(35, '_'); // у него будет имя из загруженного regNumList
@@ -231,6 +238,9 @@ void handleAllStandartDataCan(
             break;
         }
         case REGISTER_SHOW_SCALES_ID: { // если пришел scales регистр
+
+            // qDebug() << "пришел scales регистр";
+
             quint8 regNum = quint8(arrayDataFromCAN[6]); // если пришел регистр, то в этом месте будет его номер
             regDataArray[regNum].regScales7 = arrayDataFromCAN.mid(7, 7); // заполняем поле масштабов
             regDataArray[regNum].flagReg = quint8(regDataArray[regNum].regScales7[0]);
