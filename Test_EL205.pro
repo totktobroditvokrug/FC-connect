@@ -23,6 +23,7 @@ SOURCES += \
     iface.cpp \
     main.cpp \
     menu.cpp \
+    peakcan.cpp \
     plot/qcustomplot.cpp \
     qpaintwidget.cpp \
     stylehelper.cpp \
@@ -44,6 +45,7 @@ HEADERS += \
     fc_connect.h \
     iface.h \
     invertor.h \
+    peakcan.h \
     plot/qcustomplot.h \
     qpaintwidget.h \
     stylehelper.h \

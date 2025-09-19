@@ -2,6 +2,8 @@
 #include "ui_fc_connect.h"
 #include "stylehelper.h"
 
+#include "peakcan.h"
+
 void MainWindow::on_pushButton_searchListPort_clicked() // список доступных портов
 {
     QString description;
@@ -379,14 +381,17 @@ void MainWindow::on_comboBox_canFreq_currentIndexChanged(int index) // выбо�
         case 0: {
          //  ui->lineEdit_canFreq->setText(AddCRC(AD_COM_SET_FREQ_CAN_125, 2).toHex());
            writeSerialPort(AddCRC(AD_COM_SET_FREQ_CAN_125, 2).toHex());
+
         } break;
         case 1: {
          //  ui->lineEdit_canFreq->setText(AddCRC(AD_COM_SET_FREQ_CAN_250, 2).toHex());
            writeSerialPort(AddCRC(AD_COM_SET_FREQ_CAN_250, 2).toHex());
+
         } break;
         case 2: {
          //  ui->lineEdit_canFreq->setText(AddCRC(AD_COM_SET_FREQ_CAN_500, 2).toHex());
            writeSerialPort(AddCRC(AD_COM_SET_FREQ_CAN_500, 2).toHex());
+
         } break;
        // default: ui->lineEdit_canFreq->setText("не установлена частота CAN");
     }
@@ -451,12 +456,20 @@ void MainWindow::processReceivedFrames()
         return;
     }
 
-//    qDebug("Read Frame");
+    QStringList parsingDataList;  // лист принятых сообщений
+    parsingDataList.clear();
+
+    formatCanMessage canMessage; // структура CAN сообщения
+
+    QString checkCRC = "crc-OK";
+
+    qDebug("Read Frame");
 
     while(mCanDevice->framesAvailable()) {
         const QCanBusFrame frame = mCanDevice->readFrame();
         QString view;
         QString message;
+        bool isExtendedFormat = frame.hasExtendedFrameFormat();
 
         message = handlePeakCanParsing(frame);
 
@@ -484,9 +497,30 @@ void MainWindow::processReceivedFrames()
         }
 
         QByteArray payload = frame.payload();
+
+        if(isExtendedFormat) {
+
+             QString extendedFrame = handleCAN(canMessage, EXT_PREFIX + checkCRC);
+             qDebug() << extendedFrame;
+            // if(checkExtended) parsingDataList.append(extendedFrame);  // выводим при чекбоксе
+        }
+        else {
+            QString standartFrame = handleCAN(canMessage, STD_PREFIX + checkCRC);
+            qDebug() << standartFrame;
+        }
+
+
+
+
+
 //        qDebug("0x%x  0x%x", frame.frameId(), (char)payload[0]);
 //        qDebug("%s  %s  %s",time.toStdString().c_str(), flags.toStdString().c_str(), view.toStdString().c_str());
 
+    }
+
+    // вывод полученных сообщений
+    if (parsingDataList.size() > 0){ // если ответ не нулевой, выводим его в текстовое поле регулируемой длины
+        if(ui->radioButton_byChekBox->isChecked()) ui->textEdit_dataRead->append(parsingDataList.join("\n"));
     }
 
 }
@@ -565,7 +599,7 @@ void MainWindow::on_actionConnect_triggered()
     }
 
     mCanDeviceInfo = QCanBus::instance()->availableDevices("peakcan");
-    ;
+
     if (!mCanDeviceInfo.isEmpty()) {
     //    QList<QCanBusDeviceInfo> devicesList =  mCanDeviceInfo.begin()->name().toStdString().c_str();
         qDebug("%s", mCanDeviceInfo.begin()->name().toStdString().c_str());
@@ -592,7 +626,7 @@ void MainWindow::on_actionConnect_triggered()
         //connect(m_canDevice, &QCanBusDevice::framesReceived, this, &MainWindow::processReceivedFrames);
         //connect(m_canDevice, &QCanBusDevice::framesWritten, this, &MainWindow::processFramesWritten);
 
-        mCanDevice->setConfigurationParameter(QCanBusDevice::BitRateKey, QVariant(250000)); // baud rate
+        mCanDevice->setConfigurationParameter(QCanBusDevice::BitRateKey, SET_BIT_RATE_CAN_125); // baud rate
         //mCanDevice->setConfigurationParameter(QCanBusDevice::ErrorFilterKey, QVariant(0x1ffffff));
 
         connectPeakCAN();
@@ -617,9 +651,9 @@ void MainWindow::disconnectPeakCAN()
     qDebug("CanDevice is closed");
 }
 
-void MainWindow::setBitRatePeakCan(quint16 commandCanFreqInv)
+void MainWindow::setBitRatePeakCan(int commandCanFreqInv)
 {
-    if (!!mCanDevice) mCanDevice->setConfigurationParameter(QCanBusDevice::BitRateKey, QVariant(commandCanFreqInv)); // baud rate
+    if (!!mCanDevice) mCanDevice->setConfigurationParameter(QCanBusDevice::BitRateKey, commandCanFreqInv); // baud rate
     qDebug()<< "set BitRate peakcan:" << commandCanFreqInv;
 }
 
@@ -646,7 +680,7 @@ QString MainWindow::handlePeakCanParsing(QCanBusFrame frame)
 {
     QString message;
     message = frame.toString();
-    qDebug()<< message;
+//    qDebug()<< message;
 
     return(message);
 } // форматирование данных от адаптера PEAKCAN

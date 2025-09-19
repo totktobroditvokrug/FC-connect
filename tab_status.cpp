@@ -1011,18 +1011,12 @@ void MainWindow::on_comboBox_canFreqInv_currentIndexChanged(int index)
                             glueString(changeHiLowBytes_uint(commandCanFreqInv), RegnumClass::IREG_INV_INT_CTRL)), 2).toHex();
 //     ui->textEdit_commandCRC->append(commandString);
     writeSerialPort(commandString);
-    setBitRatePeakCan(commandCanFreqInv);
 }
 
 void MainWindow::on_checkBox_allowCAN_freqChanges_clicked(bool checked)
 {
-    if(checked)
-
-    {
-        QMessageBox::warning(this, "Внимание","Изменение скорости CAN шины."
+    if(checked) QMessageBox::warning(this, "Внимание","Изменение скорости CAN шины."
                                               " Возможен конфлик скоростей и потеря связи.");
-        ui->comboBox_canFreqInv->setEnabled(true);
-    }
     else ui->comboBox_canFreqInv->setEnabled(false);
 }
 

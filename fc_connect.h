@@ -35,9 +35,11 @@
 #include "stylehelper.h"
 #include "adapter_commands.h"
 #include "iface.h"
-
+#include "peakcan.h"
 #include "configfile.h"
 #include "aliasfromenum.h"
+
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -91,7 +93,7 @@ private slots:
  //   void msleep(uint msec);
     void on_actionConnect_triggered();
 
-    void setBitRatePeakCan(quint16 commandCanFreqInv);  // частота кэн шины
+    void setBitRatePeakCan(int commandCanFreqInv);  // частота кэн шины
     void connectPeakCAN();
     void disconnectPeakCAN();
 
