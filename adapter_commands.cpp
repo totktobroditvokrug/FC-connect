@@ -103,7 +103,7 @@ QStringList handleUartParsing(
               //  qDebug() << "это CAN сообщение. i = " << i;
 
                     if ((i + AD_COM_LENGTH_CAN + 1) > dataSize){ // проверка по минимальной длине
-                        qDebug() << "Неполное CAN сообщение. Проверка по остатку буфера";
+                        //qDebug() << "Неполное CAN сообщение. Проверка по остатку буфера";
 
                         parsingDataList.append("-- Неполное CAN сообщение --");
 
@@ -165,11 +165,11 @@ QStringList handleUartParsing(
 
                         quint8 lengthDataCAN = quint8(dataRead[i+12]);  // длина сообщения
 
-                        qDebug() << "dataSize - i:" << dataSize << " - " << i << " = " << (dataSize - i);
+                        //qDebug() << "dataSize - i:" << dataSize << " - " << i << " = " << (dataSize - i);
 
                         QByteArray arrayDATA = dataRead.mid((i+13), 8);
 
-                        qDebug() << "quint8 numberSerialMessage = quint8(dataRead[i+21]);";
+                        //qDebug() << "quint8 numberSerialMessage = quint8(dataRead[i+21]);";
                         quint8 numberSerialMessage = quint8(dataRead[i+21]);  // номер сообщения
 
                         canMessage.time_stamp_1 = time_stamp_1;  // формируем 32-х разрядную метку времени

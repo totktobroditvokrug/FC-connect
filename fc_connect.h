@@ -38,6 +38,7 @@
 #include "peakcan.h"
 #include "configfile.h"
 #include "aliasfromenum.h"
+#include "el205_can_adapter.h"
 
 
 
@@ -57,12 +58,18 @@ public:
 //    void sendUconv(int uConv, int uConvMax);  //  будем посылать для вектора значение напряжение
 //    void sendIconv(int iA, int iB, int iC, int iMax, int phA, int phB, int phC);  //  будем посылать для вектора значения тока
 
+public slots:
+    void slotStartCan();
+    void slotStopCan();
+
+
 private slots:
 
     QString readCurrentDate(); //  работа с текущим временем для плоттера
 
     // настройка адаптера
     void initTabCan(); // уставки по умолчанию, активация кнопок
+    void adapterIsEnable(); // разрешить настройки адаптера и его запуск
     void on_pushButton_searchListPort_clicked();
     void on_pushButton_connect_clicked();
     void on_pushButton_disconnect_clicked();
@@ -404,6 +411,9 @@ private:
     quint16 IregInvStatus_3;
     quint16 IregInvStatus_flt;
     quint16 IregInvStatus_5;
+
+    //CAN adapter
+    el205_CAN_adapter *EL205;
 
     // PEAKCAN
     bool mIsOpened;		// peak-can open state

@@ -290,19 +290,8 @@ void MainWindow::on_pushButton_connect_clicked()
         ui->pushButton_disconnect->setEnabled(true);
         return;
     }
-//    qDebug()<<"Serial port is OPEN: ";
-    ui->statusbar->showMessage("Serial port is OPEN");
 
-    ui->pushButton_disconnect->setEnabled(true);
-//    ui->pushButton_sendMessage->setEnabled(true);
-    ui->pushButton_readOnce->setEnabled(true);
-    ui->pushButton_stopRead->setEnabled(true);
-    ui->pushButton_startRead->setEnabled(true);
-
-    ui->comboBox_canFreq->setEnabled(true);
-    ui->comboBox_readAllCan->setEnabled(true);
-    ui->pushButton_setConfigAdapter->setEnabled(true);
-
+    adapterIsEnable();        // разрешить выбор настроек адаптера
     init_setConfigAdapter();  // инициализация адаптера по частоте CAN и фильтру сообщений
 }
 
@@ -346,6 +335,21 @@ void MainWindow::on_pushButton_disconnect_clicked()
     ui->label_parityOk->setText("-");
     ui->label_stopOk->setText("-");
     ui->label_flowOk->setText("-");
+}
+
+void MainWindow::adapterIsEnable(){
+    //    qDebug()<<"Serial port is OPEN: ";
+        ui->statusbar->showMessage("Serial port is OPEN");
+
+        ui->pushButton_disconnect->setEnabled(true);
+    //    ui->pushButton_sendMessage->setEnabled(true);
+        ui->pushButton_readOnce->setEnabled(true);
+        ui->pushButton_stopRead->setEnabled(true);
+        ui->pushButton_startRead->setEnabled(true);
+
+        ui->comboBox_canFreq->setEnabled(true);
+        ui->comboBox_readAllCan->setEnabled(true);
+        ui->pushButton_setConfigAdapter->setEnabled(true);
 }
 
 

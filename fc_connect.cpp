@@ -1,5 +1,6 @@
 #include "fc_connect.h"
 #include "ui_fc_connect.h"
+#include "el205_can_adapter.h"
 
 #include "plot/qcustomplot.h"
 
@@ -66,9 +67,11 @@ MainWindow::MainWindow(QWidget *parent)
     // работа со статусом инвертора
     initStatus();
 
-    // работа с векторной диаграммой
-//    connect(this, SIGNAL(sendUconv(int, int)), ui->widget_paintVector, SLOT(setUconv(int, int)));
-//    connect(this, SIGNAL(sendIconv(int, int, int, int, int, int, int)), ui->widget_paintVector, SLOT(setIconv(int, int, int, int, int, int, int)));
+    // работа с настройкой CAN адаптеров
+
+    EL205 = new el205_CAN_adapter;
+    connect(EL205, SIGNAL(SignalStartCan()), this, SLOT(slotStartCan()));
+    connect(EL205, SIGNAL(SignalStopCan()), this, SLOT(slotStopCan()));
 
     timerDate->start(500); // обновляем дату два раза в секунду
     numberOfRestartsStartTime = 0; // обнуляем количество перезапусков при переполнении метки времени адаптера

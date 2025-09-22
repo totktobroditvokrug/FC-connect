@@ -19,6 +19,7 @@ SOURCES += \
     adapter_commands.cpp \
     aliasfromenum.cpp \
     configfile.cpp \
+    el205_can_adapter.cpp \
     fc_connect.cpp \
     iface.cpp \
     main.cpp \
@@ -42,6 +43,7 @@ HEADERS += \
     adapter_commands.h \
     aliasfromenum.h \
     configfile.h \
+    el205_can_adapter.h \
     fc_connect.h \
     iface.h \
     invertor.h \

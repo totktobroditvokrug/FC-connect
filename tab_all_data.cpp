@@ -1,5 +1,6 @@
 #include "fc_connect.h"
 #include "ui_fc_connect.h"
+#include "el205_can_adapter.h"
 
 #include "stylehelper.h"
 
@@ -84,6 +85,44 @@ void MainWindow::on_pushButton_startRead_clicked() // запуск циклич�
     timerPlotter->start((ui->lineEdit_freqPlot->text().toInt())); // время обновление графиков из lineEdit_freqPlot
     timerPlotterUF->start(1000);  // обновление графика U/f раз в секунду
 
+   emit EL205->SignalStartCan();
+}
+
+void MainWindow::on_pushButton_readOnce_clicked()
+{
+    readStream();
+}
+
+void MainWindow::on_pushButton_stopRead_clicked()
+{
+    timer->stop();
+    timerPlotter->stop();
+    timerPlotterUF->stop();
+    emptyBufferCounter = 0; // запускать таймер проверки связи с нуля
+
+    emit EL205->SignalStopCan();
+}
+
+void MainWindow::on_pushButton_clear_clicked() // очистить поле вывода потока
+{
+    ui->textEdit_dataRead->clear();
+}
+
+//------- изменить максимальный размер блока для вывода выбранных посылок
+void MainWindow::on_lineEdit_volumeTextRead_editingFinished()
+{
+      ui->textEdit_dataRead->document()->setMaximumBlockCount(ui->lineEdit_volumeTextRead->text().toInt());
+}
+
+//------- изменить частоту опроса CAN-адаптера
+void MainWindow::on_lineEdit_freqSampl_editingFinished()
+{
+    timer->setInterval((ui->lineEdit_freqSampl->text().toInt()));
+}
+
+
+void MainWindow::slotStartCan(){
+    qDebug() << "слот на запуск любого CAN адаптера";
     ui->pushButton_startInv->setEnabled(true);
     ui->pushButton_stopInv->setEnabled(true);
     ui->pushButton_alarmInv->setEnabled(true);
@@ -103,18 +142,8 @@ void MainWindow::on_pushButton_startRead_clicked() // запуск циклич�
 
    ui->statusbar->showMessage("Запущено чтение CAN");
 }
-
-void MainWindow::on_pushButton_readOnce_clicked()
-{
-    readStream();
-}
-
-void MainWindow::on_pushButton_stopRead_clicked()
-{
-    timer->stop();
-    timerPlotter->stop();
-    timerPlotterUF->stop();
-    emptyBufferCounter = 0; // запускать таймер проверки связи с нуля
+void MainWindow::slotStopCan(){
+    qDebug() << "слот на останов любого CAN адаптера";
     // разрешить менять настройки CAN
     ui->comboBox_canFreq->setEnabled(true);
     ui->comboBox_readAllCan->setEnabled(true);
@@ -146,21 +175,4 @@ void MainWindow::on_pushButton_stopRead_clicked()
     ui->table_UF->setEnabled(false);
 
     ui->statusbar->showMessage("Остановка чтения CAN");
-}
-
-void MainWindow::on_pushButton_clear_clicked() // очистить поле вывода потока
-{
-    ui->textEdit_dataRead->clear();
-}
-
-//------- изменить максимальный размер блока для вывода выбранных посылок
-void MainWindow::on_lineEdit_volumeTextRead_editingFinished()
-{
-      ui->textEdit_dataRead->document()->setMaximumBlockCount(ui->lineEdit_volumeTextRead->text().toInt());
-}
-
-//------- изменить частоту опроса CAN-адаптера
-void MainWindow::on_lineEdit_freqSampl_editingFinished()
-{
-    timer->setInterval((ui->lineEdit_freqSampl->text().toInt()));
 }
