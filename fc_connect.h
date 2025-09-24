@@ -68,13 +68,18 @@ private slots:
     QString readCurrentDate(); //  работа с текущим временем для плоттера
 
     // настройка адаптера
+
+    void displayData(); // вывод таблиц и графиков
     void initTabCan(); // уставки по умолчанию, активация кнопок
     void adapterIsEnable(); // разрешить настройки адаптера и его запуск
     void on_pushButton_searchListPort_clicked();
     void on_pushButton_connect_clicked();
     void on_pushButton_disconnect_clicked();
+    void showNumberBitesAvailable(quint64 bytesFromAdapter); // поле количества доступных CAN данных
 
     // чтение данных из CAN
+    void showAnswerFromCan(QStringList parsingDataList); // данные после парсинга EL205-1
+
     void on_pushButton_startRead_clicked(); // опрос в цикле таймера
     void on_pushButton_readOnce_clicked();  // единичный опрос
     void on_pushButton_stopRead_clicked();

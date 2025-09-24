@@ -76,7 +76,9 @@ QStringList handleUartParsing(
     QHash<quint32, QByteArray> *canByIdExtended  // таблица расширенных CAN сообщений
 ) {
     formatCanMessage canMessage;
+
     QStringList parsingDataList;
+
     quint8 dataLength;
     QByteArray arrayDataForCRC; // посылка без двух стартовых байт и CRC
     quint8 CRC;  // CRC из посылки
@@ -87,7 +89,7 @@ QStringList handleUartParsing(
 
     quint64 dataSize  = dataRead.size(); // размер полученных данных для парсинга
 
-    //  qDebug() << "handleUartParsing. dataSize = " << dataSize;
+    qDebug() << "handleUartParsing. dataSize = " << dataSize;
 
     for (quint64 i=0; i<=(dataSize-2); i++) // минимальная длина сообщения - 2 байта
     {

@@ -6,11 +6,11 @@ void MainWindow::displayHashID()
 {
   //  qDebug() << "displayHashID";
 
-    if(ui->tabWidget_registerWidget->currentIndex() != 0) return; // если виджет неактивен, хэш не выводим
+ //   if(ui->tabWidget_registerWidget->currentIndex() != 0) return; // если виджет неактивен, хэш не выводим
     QStringList canFromHash;
     canFromHash.clear();
     canFromHash.append("-- Standart CAN --");
-    QHashIterator<quint16, QByteArray> iteratorStantart(canByIdStandart);
+    QHashIterator<quint16, QByteArray> iteratorStandart(canByIdStandart);
     for (auto i = canByIdStandart.cbegin(), end = canByIdStandart.cend(); i != end; ++i){
         canFromHash.append(QString::number(i.key(), 16).rightJustified(4, '0') + " : " + QString::fromUtf8(i.value().toHex(' ')));
     }

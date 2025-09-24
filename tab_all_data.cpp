@@ -8,23 +8,26 @@
 void MainWindow::readStream()
 {
     QByteArray dataRead;    // принятая куча из COM- порта
+    dataRead.clear();
+
     bool checkStandart = ui->checkBox_canStandart->checkState();
     bool checkExtended = ui->checkBox_canExtended->checkState();
     bool checkAnswer = ui->checkBox_adapterAnswer->checkState();
 
- //   qDebug() << "запуск чтения порта: readStream";
+    qDebug() << "запуск чтения порта: readStream";
 
-    dataRead.clear();
-    while (serial->waitForReadyRead(30))
-    {
+    QStringList parsingDataList;
+    parsingDataList.clear();
+
+ //   while (serial->waitForReadyRead(30))
+ //   {
         quint64 bytesFromAdapter = serial->bytesAvailable(); // поменять на quint!!!
         if (bytesFromAdapter > 8) // если пришло достаточное количество байт, то читаем
         {
-            ui->lineEdit_availableByte->setText(QString::number(bytesFromAdapter, 10));
-            // qDebug() << "прочитано " << QString::number(serial->bytesAvailable(), 10) << " байт";
+            showNumberBitesAvailable(bytesFromAdapter);
             dataRead = serial->readAll();
             // принятые данные распишутся по структурам и возвращаютсяв виде форматированных строк ответа
-            QStringList parsingDataList = handleUartParsing(dataRead,
+            parsingDataList = handleUartParsing(dataRead,
                                                             checkStandart,
                                                             checkExtended,
                                                             checkAnswer,
@@ -34,26 +37,44 @@ void MainWindow::readStream()
                                                             sampleDataArray,
                                                             &canByIdStandart,
                                                             &canByIdExtended);
-            if (parsingDataList.size() > 0){ // если ответ не нулевой, выводим его в текстовое поле регулируемой длины
-                if(ui->radioButton_byChekBox->isChecked()) ui->textEdit_dataRead->append(parsingDataList.join("\n"));
-            }
-// ошибка перед этим местом
-            regDisplayTable(); // вывод таблицы регистров
-            sampleDisplayTable(); // вывод таблицы измерений
-            displayHashID();  // вывод принятых пакетов по ID
-            checkStatus(); // вывод статуса инвертора
-            checkVector(); // вывод векторов тока и напряжений
 
-            if(bytesFromAdapter > 60) { // переделать под настоящие ответы по CAN
-               ui->pushButton_setRegistersFromFile->setEnabled(true);
-               emptyBufferCounter = 0;
-            }
+
+            showAnswerFromCan(parsingDataList);
             return;  // обработали валидное количество байт. Выходим из функции запроса
         }
-    }
+ //   }
+
+   // showAnswerFromCan(parsingDataList);
 
     ui->pushButton_setRegistersFromFile->setEnabled(false);
-    if(emptyBufferCounter < 15) {
+
+
+       // qDebug() << "не  вышли по return, неполное сообщение";
+}
+
+
+// поле вывода количества полученных байт из CAN шины
+void MainWindow::showNumberBitesAvailable(quint64 bytesFromAdapter){
+    ui->lineEdit_availableByte->setText(QString::number(bytesFromAdapter, 10));
+    // qDebug() << "прочитано " << QString::number(serial->bytesAvailable(), 10) << " байт";
+}
+
+void MainWindow::showAnswerFromCan(QStringList parsingDataList){
+
+    qDebug() << "размер parsingDataList = " << parsingDataList.size();
+//    qDebug() << "размер emptyBufferCounter = " << emptyBufferCounter;
+
+
+
+    if (parsingDataList.size() > 0){ // если ответ не нулевой, выводим его в текстовое поле регулируемой длины
+
+        if(ui->radioButton_byChekBox->isChecked()) ui->textEdit_dataRead->append(parsingDataList.join("\n"));
+        ui->pushButton_setRegistersFromFile->setEnabled(true);
+        emptyBufferCounter = 0;
+        return;
+    }
+
+    if(emptyBufferCounter < 25) {
         init_setConfigAdapter(); // если не было ничего прочитано, повторно конфигурируем адаптер
         emptyBufferCounter++;
     }
@@ -65,9 +86,16 @@ void MainWindow::readStream()
         }
         emptyBufferCounter = 0;
     }
-
-       // qDebug() << "не  вышли по return, неполное сообщение";
 }
+
+void MainWindow::displayData(){
+    regDisplayTable();       // вывод таблицы регистров
+    sampleDisplayTable();    // вывод таблицы измерений
+    displayHashID();         // вывод принятых пакетов по ID
+    checkStatus();           // вывод статуса инвертора
+    checkVector();           // вывод векторов тока и напряжений
+}
+
 
 void MainWindow::on_pushButton_startRead_clicked() // запуск цикличного чтения потока данных
 {
@@ -85,7 +113,7 @@ void MainWindow::on_pushButton_startRead_clicked() // запуск циклич�
     timerPlotter->start((ui->lineEdit_freqPlot->text().toInt())); // время обновление графиков из lineEdit_freqPlot
     timerPlotterUF->start(1000);  // обновление графика U/f раз в секунду
 
-   emit EL205->SignalStartCan();
+    emit EL205->SignalStartCan();
 }
 
 void MainWindow::on_pushButton_readOnce_clicked()
@@ -142,6 +170,7 @@ void MainWindow::slotStartCan(){
 
    ui->statusbar->showMessage("Запущено чтение CAN");
 }
+
 void MainWindow::slotStopCan(){
     qDebug() << "слот на останов любого CAN адаптера";
     // разрешить менять настройки CAN

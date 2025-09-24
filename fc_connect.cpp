@@ -17,6 +17,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     timer = new QTimer;
     connect(timer, SIGNAL(timeout()), this, SLOT(readStream()));
+    connect(timer, SIGNAL(timeout()), this, SLOT(displayData()));
 
     timerDate = new QTimer;
     connect(timerDate, SIGNAL(timeout()), this, SLOT(readCurrentDate()));
