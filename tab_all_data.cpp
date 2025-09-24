@@ -14,13 +14,11 @@ void MainWindow::readStream()
     bool checkExtended = ui->checkBox_canExtended->checkState();
     bool checkAnswer = ui->checkBox_adapterAnswer->checkState();
 
-    qDebug() << "запуск чтения порта: readStream";
+   // qDebug() << "запуск чтения порта: readStream";
 
     QStringList parsingDataList;
     parsingDataList.clear();
 
- //   while (serial->waitForReadyRead(30))
- //   {
         quint64 bytesFromAdapter = serial->bytesAvailable(); // поменять на quint!!!
         if (bytesFromAdapter > 8) // если пришло достаточное количество байт, то читаем
         {
@@ -28,28 +26,19 @@ void MainWindow::readStream()
             dataRead = serial->readAll();
             // принятые данные распишутся по структурам и возвращаютсяв виде форматированных строк ответа
             parsingDataList = handleUartParsing(dataRead,
-                                                            checkStandart,
-                                                            checkExtended,
-                                                            checkAnswer,
+                                                        //    checkStandart,
+                                                        //    checkExtended,
+                                                        //    checkAnswer,
                                                             regNumList,
                                                             sampleNumList,
                                                             regDataArray,
                                                             sampleDataArray,
                                                             &canByIdStandart,
                                                             &canByIdExtended);
-
-
-            showAnswerFromCan(parsingDataList);
-            return;  // обработали валидное количество байт. Выходим из функции запроса
         }
- //   }
+        else ui->pushButton_setRegistersFromFile->setEnabled(false); // требует тестировки
 
-   // showAnswerFromCan(parsingDataList);
-
-    ui->pushButton_setRegistersFromFile->setEnabled(false);
-
-
-       // qDebug() << "не  вышли по return, неполное сообщение";
+    showAnswerFromCan(parsingDataList);
 }
 
 
@@ -61,21 +50,37 @@ void MainWindow::showNumberBitesAvailable(quint64 bytesFromAdapter){
 
 void MainWindow::showAnswerFromCan(QStringList parsingDataList){
 
-    qDebug() << "размер parsingDataList = " << parsingDataList.size();
+    ui->lineEdit_availableMessage->setText(QString::number(parsingDataList.size(), 10));
 //    qDebug() << "размер emptyBufferCounter = " << emptyBufferCounter;
+    QStringList messageDataList;
+    messageDataList.clear();
 
+    quint64 lengthOfParsingData = parsingDataList.size();
+    quint64 numberOfMessage = 0;
 
+    if (lengthOfParsingData > 0){ // если ответ не нулевой, выводим его в текстовое поле регулируемой длины
+        for (int i = 0; i < lengthOfParsingData; i++){
+            if(parsingDataList[i].contains(STD_PREFIX, Qt::CaseSensitive)){
+                numberOfMessage++;
+                if(ui->checkBox_canStandart->isChecked()) messageDataList.append(parsingDataList[i]);
+            }
+            if(parsingDataList[i].contains(EXT_PREFIX, Qt::CaseSensitive)){
+                numberOfMessage++;
+                if(ui->checkBox_canExtended->isChecked()) messageDataList.append(parsingDataList[i]);
+            }
+            if(parsingDataList[i].contains("ansAD", Qt::CaseSensitive)){
+                if(ui->checkBox_adapterAnswer->isChecked()) messageDataList.append(parsingDataList[i]);
+            }
 
-    if (parsingDataList.size() > 0){ // если ответ не нулевой, выводим его в текстовое поле регулируемой длины
+        }
+        if(ui->radioButton_byChekBox->isChecked()) ui->textEdit_dataRead->append(messageDataList.join("\n"));
 
-        if(ui->radioButton_byChekBox->isChecked()) ui->textEdit_dataRead->append(parsingDataList.join("\n"));
         ui->pushButton_setRegistersFromFile->setEnabled(true);
-        emptyBufferCounter = 0;
-        return;
+        if(numberOfMessage > 0) emptyBufferCounter = 0;
     }
 
     if(emptyBufferCounter < 25) {
-        init_setConfigAdapter(); // если не было ничего прочитано, повторно конфигурируем адаптер
+        if(emptyBufferCounter > 15) init_setConfigAdapter(); // если не было ничего прочитано, повторно конфигурируем адаптер
         emptyBufferCounter++;
     }
     else {

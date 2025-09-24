@@ -83,9 +83,9 @@ QString handleAdapterAnswer(QByteArray answerArrayID, quint8 lengthDataAnswer, Q
 //-------------- Парсинг потока адаптера EL205-1 -----------------------------
 QStringList handleUartParsing(
         QByteArray dataRead,
-        bool checkStandart,
-        bool checkExtended,
-        bool checkAnswer,
+        // bool checkStandart,
+        // bool checkExtended,
+        // bool checkAnswer,
         QVector<QString> regNumList,
         QVector<QString> sampleNumList,
         registerFields *regDataArray,

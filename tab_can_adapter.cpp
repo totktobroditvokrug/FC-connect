@@ -292,6 +292,7 @@ void MainWindow::on_pushButton_connect_clicked()
     }
 
     adapterIsEnable();        // разрешить выбор настроек адаптера
+
     init_setConfigAdapter();  // инициализация адаптера по частоте CAN и фильтру сообщений
 }
 

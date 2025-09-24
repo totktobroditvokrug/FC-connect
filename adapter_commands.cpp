@@ -65,9 +65,9 @@ QString handleAdapterAnswer(QByteArray answerArrayID, quint8 lengthDataAnswer, Q
 //-------------- Парсинг потока из адаптера EL205-1 -----------------------------
 QStringList handleUartParsing(
     QByteArray dataRead,  // принятай массив из CAN-адаптера
-    bool checkStandart,   // флаг на вывод стандартных CAN сообщений
-    bool checkExtended,   // флаг на вывод расширенных CAN сообщений
-    bool checkAnswer,     // флаг на вывод ответов адаптера
+    // bool checkStandart,   // флаг на вывод стандартных CAN сообщений
+    // bool checkExtended,   // флаг на вывод расширенных CAN сообщений
+    // bool checkAnswer,     // флаг на вывод ответов адаптера
     QVector<QString> regNumList,  // имена регистров, взятые из enum или из файла
     QVector<QString> sampleNumList,
     registerFields *regDataArray,  // эти поля регистров надо заполнить (элиас, данные, масштабы)
@@ -89,7 +89,7 @@ QStringList handleUartParsing(
 
     quint64 dataSize  = dataRead.size(); // размер полученных данных для парсинга
 
-    qDebug() << "handleUartParsing. dataSize = " << dataSize;
+    // qDebug() << "handleUartParsing. dataSize = " << dataSize;
 
     for (quint64 i=0; i<=(dataSize-2); i++) // минимальная длина сообщения - 2 байта
     {
@@ -201,13 +201,13 @@ QStringList handleUartParsing(
                            // заполняем хэш-таблицу с ключом по стандартному ID
                            canByIdStandart->insert(canMessage.id_std_16, arrayDATA); // новый id добавится, старый перезапишется
 
-                            if(checkStandart) parsingDataList.append(standartFrame);  // выводим при чекбоксе
+                            parsingDataList.append(standartFrame);  // выводим при чекбоксе
                         }
                         else
                         {
                            // qDebug() << "Расширенное CAN сообщение №";
                             QString extendedFrame = handleCAN(canMessage, EXT_PREFIX + checkCRC);
-                            if(checkExtended) parsingDataList.append(extendedFrame);  // выводим при чекбоксе
+                            parsingDataList.append(extendedFrame);  // выводим при чекбоксе
 
                             // заполняем хэш-таблицу с ключом по стандартному ID
                             canByIdExtended->insert(canMessage.id_ext_32, arrayDATA); // новый id добавится, старый перезапишется
@@ -225,9 +225,8 @@ QStringList handleUartParsing(
                         QByteArray answerArrayDATA = dataRead.mid((i+7), lengthDataAnswer-6);
                         QString adapterAnswer = handleAdapterAnswer(answerArrayID, lengthDataAnswer, answerArrayDATA);
                       //  qDebug() << "дежурный ответ: " << adapterAnswer;
-                        if(checkAnswer) {
-                             parsingDataList.append(adapterAnswer);
-                        }
+
+                        parsingDataList.append(adapterAnswer);
                         i = i + lengthDataAnswer+2;
                     }
                 } break;
