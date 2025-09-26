@@ -90,7 +90,8 @@ private slots:
     void on_pushButton_setConfigAdapter_clicked(); // конфигурация адаптера по комбобоксам
     void init_setConfigAdapter(); // инициализация адаптера по умолчанию
 
-    // получение данных от CAN адаптера
+    // получение данных от CAN адаптера EL205-1
+
     void writeSerialPort(QString dataWriteString);
     QByteArray readSerialPort();
     void readStream(); // Чтение потока из serialport
@@ -98,18 +99,18 @@ private slots:
     void on_lineEdit_freqSampl_editingFinished(); // частота опроса CAN-адаптера
 
     // PEAKCAN
-    void processErrors(QCanBusDevice::CanBusError) const;
-    void processReceivedFrames();
+//    void processErrors(QCanBusDevice::CanBusError) const;
+//    void processReceivedFrames();
 
-    void sendCaptureDeviceMsg(int canId);
+//    void sendCaptureDeviceMsg(int canId);
  //   void msleep(uint msec);
-    void on_actionConnect_triggered();
+//    void on_actionConnect_triggered();
 
-    void setBitRatePeakCan(int commandCanFreqInv);  // частота кэн шины
-    void connectPeakCAN();
-    void disconnectPeakCAN();
+//    void setBitRatePeakCan(int commandCanFreqInv);  // частота кэн шины
+//    void connectPeakCAN();
+//    void disconnectPeakCAN();
 
-    QString handlePeakCanParsing(QCanBusFrame frame); // форматирование данных от адаптера PEAKCAN
+//   QString handlePeakCanParsing(QCanBusFrame frame); // форматирование данных от адаптера PEAKCAN
 
 
     // элементы меню
@@ -419,11 +420,12 @@ private:
 
     //CAN adapter
     el205_CAN_adapter *EL205;
+    PeakCan *PCan;
 
     // PEAKCAN
-    bool mIsOpened;		// peak-can open state
-    bool mIsConnected;  // PEAK-CAN connection status
-    QCanBusDevice *mCanDevice = nullptr;
-    QList<QCanBusDeviceInfo> mCanDeviceInfo;
+//    bool mIsOpened;		// peak-can open state
+//    bool mIsConnected;  // PEAK-CAN connection status
+//    QCanBusDevice *mCanDevice = nullptr;
+//    QList<QCanBusDeviceInfo> mCanDeviceInfo;
 };
 #endif // FC_CONNECT_H

@@ -49,7 +49,7 @@ MainWindow::MainWindow(QWidget *parent)
     createSamplesTable();
     initComboBoxRegister(); // три кастомных регистра в заголовке таблицы значений
     ui->checkBox_lossConnection->setChecked(true); // по умолчанию останавливаем процесс при потере связи
-    on_pushButton_searchListPort_clicked(); // заранее загрузить доступные порты
+
 
 
     //работа с осциллограммами
@@ -70,9 +70,12 @@ MainWindow::MainWindow(QWidget *parent)
 
     // работа с настройкой CAN адаптеров
 
-    EL205 = new el205_CAN_adapter;
+    EL205 = new el205_CAN_adapter;  // кдасс адаптера EL205
     connect(EL205, SIGNAL(SignalStartCan()), this, SLOT(slotStartCan()));
     connect(EL205, SIGNAL(SignalStopCan()), this, SLOT(slotStopCan()));
+
+    PCan = new PeakCan; // класс адаптера PeakCan
+//    connect(ui->pushButton_findPEAKCAN, SIGNAL(clicked()), PCan, SLOT(slotFindPlugin()));
 
     timerDate->start(500); // обновляем дату два раза в секунду
     numberOfRestartsStartTime = 0; // обнуляем количество перезапусков при переполнении метки времени адаптера
@@ -85,6 +88,7 @@ MainWindow::MainWindow(QWidget *parent)
     workDirPath = cfg->setWorkDir(); // инициализация рабочей директории
     ui->lineEdit_workDir->setText(workDirPath);
     ui->lineEdit_workDirSample->setText(workDirPath);
+    on_pushButton_searchListPort_clicked(); // заранее загрузить доступные порты
 }
 
 MainWindow::~MainWindow()

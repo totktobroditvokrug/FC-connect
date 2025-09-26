@@ -10,10 +10,6 @@ void MainWindow::readStream()
     QByteArray dataRead;    // принятая куча из COM- порта
     dataRead.clear();
 
-    bool checkStandart = ui->checkBox_canStandart->checkState();
-    bool checkExtended = ui->checkBox_canExtended->checkState();
-    bool checkAnswer = ui->checkBox_adapterAnswer->checkState();
-
    // qDebug() << "запуск чтения порта: readStream";
 
     QStringList parsingDataList;
@@ -36,7 +32,6 @@ void MainWindow::readStream()
                                                             &canByIdStandart,
                                                             &canByIdExtended);
         }
-        else ui->pushButton_setRegistersFromFile->setEnabled(false); // требует тестировки
 
     showAnswerFromCan(parsingDataList);
 }
@@ -73,11 +68,18 @@ void MainWindow::showAnswerFromCan(QStringList parsingDataList){
             }
 
         }
-        if(ui->radioButton_byChekBox->isChecked()) ui->textEdit_dataRead->append(messageDataList.join("\n"));
+        if(ui->radioButton_byChekBox->isChecked()){
+            ui->checkBox_canStandart->setEnabled(true);
+            ui->checkBox_canExtended->setEnabled(true);
+            ui->checkBox_adapterAnswer->setEnabled(true);
+
+            ui->textEdit_dataRead->append(messageDataList.join("\n"));
+        }
 
         ui->pushButton_setRegistersFromFile->setEnabled(true);
         if(numberOfMessage > 0) emptyBufferCounter = 0;
     }
+    else ui->pushButton_setRegistersFromFile->setEnabled(false); // требует тестировки!!!!
 
     if(emptyBufferCounter < 25) {
         if(emptyBufferCounter > 15) init_setConfigAdapter(); // если не было ничего прочитано, повторно конфигурируем адаптер
@@ -104,6 +106,8 @@ void MainWindow::displayData(){
 
 void MainWindow::on_pushButton_startRead_clicked() // запуск цикличного чтения потока данных
 {
+    init_setConfigAdapter(); // перед стартом повторно прописать частоту can шины
+
     // запретить менять настройки CAN
     ui->comboBox_canFreq->setEnabled(false);
     ui->comboBox_readAllCan->setEnabled(false);

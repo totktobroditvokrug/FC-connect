@@ -20,7 +20,13 @@ void MainWindow::displayHashID()
     for (auto i = canByIdExtended.cbegin(), end = canByIdExtended.cend(); i != end; ++i){
         canFromHash.append(QString::number(i.key(), 16).rightJustified(8, '0') + " : " + QString::fromUtf8(i.value().toHex(' ')));
     }
-    if(ui->radioButton_fromHashTable->isChecked()) ui->textEdit_dataRead->setText(canFromHash.join('\n'));
+    if(ui->radioButton_fromHashTable->isChecked()){
+        ui->checkBox_canStandart->setEnabled(false);
+        ui->checkBox_canExtended->setEnabled(false);
+        ui->checkBox_adapterAnswer->setEnabled(false);
+
+        ui->textEdit_dataRead->setText(canFromHash.join('\n'));
+    }
 }
 
 void MainWindow::createSamplesTable()

@@ -6,35 +6,24 @@
 
 void MainWindow::on_pushButton_searchListPort_clicked() // список доступных портов
 {
-    QString description;
-    QString manufacturer;
-    QString serialNumber;
     // Получить доступные последовательные порты
-    QList<QSerialPortInfo> serialPortInfos = QSerialPortInfo::availablePorts();
+ //   QList<QSerialPortInfo> serialPortInfos = QSerialPortInfo::availablePorts();
 
-         // Выводим количество последовательных портов, которые может использовать текущая система
-    // qDebug() << "Total numbers of ports: " << serialPortInfos.count();
+    QVector<QStringList> arrPortInfo = EL205->searchListSerialPort();
+    QVector<QStringList> arrPCanInfo = PCan->searchListPCanPlugin();
+    // PCan->searchListPCanPlugin();
+
+    qDebug() << "после вызова searchListPCanPlugin = ";
+
 
     ui->listWidget_portInfo->clear();
     ui->comboBox_serialPort->clear();
 
     int currentComboBoxNumber = 0;
     // Добавить все доступные последовательные устройства вComboBoxв
-    for (const QSerialPortInfo &serialPortInfo : serialPortInfos)
+    for (int i = 0; i < arrPortInfo.size(); i++)
     {
-       QStringList list;
-
-       description = serialPortInfo.description();
-       manufacturer = serialPortInfo.manufacturer();
-       serialNumber = serialPortInfo.serialNumber();
-
-       list << serialPortInfo.portName()
-            << (!description.isEmpty() ? description : "None")
-            << (!manufacturer.isEmpty() ? manufacturer : "None")
-            << (!serialNumber.isEmpty() ? serialNumber : "None")
-            << serialPortInfo.systemLocation()
-            << (serialPortInfo.vendorIdentifier() ? QString::number(serialPortInfo.vendorIdentifier(), 16) : "None")
-            << (serialPortInfo.productIdentifier() ? QString::number(serialPortInfo.productIdentifier(), 16) : "None");
+       QStringList list = arrPortInfo[i];
 
        ui->comboBox_serialPort->addItem(list[0]);
        ui->listWidget_portInfo->addItem(list[0] + ": " + list[1]+ ": " + list[2]+ ": " + list[3]);
@@ -44,7 +33,16 @@ void MainWindow::on_pushButton_searchListPort_clicked() // список дост
        }
        currentComboBoxNumber++;
     }
+
+    for (int i = 0; i < arrPCanInfo.size(); i++)
+    {
+       QStringList list = arrPCanInfo[i];
+
+       ui->comboBox_serialPort->addItem(list[0]);
+       ui->listWidget_portInfo->addItem(list[0] + ": " + list[1]+ ": " + list[2]+ ": " + list[3]);
+    }
 }
+
 
 void MainWindow::on_listWidget_portInfo_itemClicked(QListWidgetItem *item)
 {
@@ -293,7 +291,7 @@ void MainWindow::on_pushButton_connect_clicked()
 
     adapterIsEnable();        // разрешить выбор настроек адаптера
 
-    init_setConfigAdapter();  // инициализация адаптера по частоте CAN и фильтру сообщений
+    // init_setConfigAdapter();  // инициализация адаптера по частоте CAN и фильтру сообщений перенес в кнопку StartRead
 }
 
 
@@ -452,243 +450,30 @@ void MainWindow::init_setConfigAdapter()
 
 void MainWindow::on_pushButton_findPEAKCAN_clicked()
 {
-    on_actionConnect_triggered();
+   // on_actionConnect_triggered();
+    qDebug() << "on_pushButton_findPEAKCAN";
 }
-
-void MainWindow::processReceivedFrames()
-{
-    if (!mCanDevice) {
-        return;
-    }
-
-    QStringList parsingDataList;  // лист принятых сообщений
-    parsingDataList.clear();
-
-    formatCanMessage canMessage; // структура CAN сообщения
-
-    QString checkCRC = "crc-OK";
-
-    qDebug("Read Frame");
-
-    while(mCanDevice->framesAvailable()) {
-        const QCanBusFrame frame = mCanDevice->readFrame();
-        QString view;
-        QString message;
-        bool isExtendedFormat = frame.hasExtendedFrameFormat();
-
-        message = handlePeakCanParsing(frame);
-
-        ui->textEdit_dataRead->append(message);
-
-        if (frame.frameType() == QCanBusFrame::ErrorFrame) {
-            view = mCanDevice->interpretErrorFrame(frame);
-        } else {
-            view = frame.toString();
-        }
-
-        const QString time = QString::fromLatin1("%1.%2  ")
-                                 .arg(frame.timeStamp().seconds(), 10, 10, QLatin1Char(' '))
-                                 .arg(frame.timeStamp().microSeconds()/100, 4, 10, QLatin1Char('0'));
-
-        QString flags = QLatin1String(" --- ");
-        if (frame.hasBitrateSwitch()) {
-            flags[1] = QLatin1Char('B');
-        }
-        if (frame.hasErrorStateIndicator()) {
-            flags[2] = QLatin1Char('E');
-        }
-        if (frame.hasLocalEcho()) {
-            flags[3] = QLatin1Char('L');
-        }
-
-        QByteArray payload = frame.payload();
-
-        if(isExtendedFormat) {
-
-             QString extendedFrame = handleCAN(canMessage, EXT_PREFIX + checkCRC);
-             qDebug() << extendedFrame;
-            // if(checkExtended) parsingDataList.append(extendedFrame);  // выводим при чекбоксе
-        }
-        else {
-            QString standartFrame = handleCAN(canMessage, STD_PREFIX + checkCRC);
-            qDebug() << standartFrame;
-        }
-
-
-
-
-
-//        qDebug("0x%x  0x%x", frame.frameId(), (char)payload[0]);
-//        qDebug("%s  %s  %s",time.toStdString().c_str(), flags.toStdString().c_str(), view.toStdString().c_str());
-
-    }
-
-    // вывод полученных сообщений
-    if (parsingDataList.size() > 0){ // если ответ не нулевой, выводим его в текстовое поле регулируемой длины
-        if(ui->radioButton_byChekBox->isChecked()) ui->textEdit_dataRead->append(parsingDataList.join("\n"));
-    }
-
-}
-
-void MainWindow::processErrors(QCanBusDevice::CanBusError error) const
-{
-
-    qDebug("Error handling");
-    switch (error) {
-    case QCanBusDevice::ReadError:
-    case QCanBusDevice::WriteError:
-    case QCanBusDevice::ConnectionError:
-    case QCanBusDevice::ConfigurationError:
-    case QCanBusDevice::UnknownError:
-        qDebug("Error:%s", mCanDevice->errorString().toStdString().c_str());
-        //m_status->setText(m_canDevice->errorString());
-        break;
-    default:
-        break;
-    }
-}
-
-// Send a message
-void MainWindow::sendCaptureDeviceMsg(int canId)
-{
-    qDebug("canId:%d", canId);
-    QCanBusFrame frame;
-    uint StdId, ExtId;
-    QByteArray payload;
-    payload.resize(8);
-
-    ExtId = 0x18EF80C8|(canId<<8);
-    payload[0]= 0x70;
-    payload[1]= 0xFF;
-    payload[2]= 0xFF;
-    payload[3]= 0xFF;
-    payload[4]= 0xFF;
-    payload[5]= 0xFF;
-    payload[6]= 0xFF;
-    payload[7]= 0xFF;
-
-    frame.setFrameType(QCanBusFrame::DataFrame);
-    frame.setExtendedFrameFormat(true); //
-    frame.setTimeStamp(QDateTime::currentMSecsSinceEpoch());
-
-    frame.setFrameId(ExtId);
-    frame.setPayload(payload);
-
-    if (mIsConnected) {
-        mCanDevice->writeFrame(frame);
-      //  msleep(25);
-    }
-
-}
-
-//void MainWindow::msleep(uint msec)
-//{
-//    QTime sleepTime = QTime::currentTime().addMSecs(msec);
-//    while(QTime::currentTime() < sleepTime) {
-//        QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
-//    }
-//}
-
-void MainWindow::on_actionConnect_triggered()
-{
-    qDebug("Connect triggered");
-    QString errString;
-
-    // проверка наличия плагина peakcan
-    if (QCanBus::instance()->plugins().contains(QStringLiteral("peakcan"))) {
-        qDebug("peakcan plugin available");
-        ui->textEdit_messagePEAKCAN->setText("peakcan plugin available");
-    } else {
-        qDebug("peakcan plugin not available");
-        ui->textEdit_messagePEAKCAN->setText("peakcan plugin not available");
-    }
-
-    mCanDeviceInfo = QCanBus::instance()->availableDevices("peakcan");
-
-    if (!mCanDeviceInfo.isEmpty()) {
-    //    QList<QCanBusDeviceInfo> devicesList =  mCanDeviceInfo.begin()->name().toStdString().c_str();
-        qDebug("%s", mCanDeviceInfo.begin()->name().toStdString().c_str());
-        ui->textEdit_messagePEAKCAN->append("available CAN devices:");
-        ui->textEdit_messagePEAKCAN->append(mCanDeviceInfo.begin()->name().toStdString().c_str());
-        //for (auto rate : )
-        // +
-    } else {
-        qDebug("Can not find available peakcan device");
-        ui->textEdit_messagePEAKCAN->append("Can not find available peakcan device");
-    }
-
-
-
-    mCanDevice = QCanBus::instance()->createDevice(QStringLiteral("peakcan"),
-                                                   QStringLiteral("usb0"), &errString);
-    if (!mCanDevice) {
-        qDebug("ErrString:%s", errString.toStdString().c_str());
-    } else {
-
-        connect(mCanDevice, &QCanBusDevice::errorOccurred, this, &MainWindow::processErrors);
-        connect(mCanDevice, &QCanBusDevice::framesReceived, this , &MainWindow::processReceivedFrames);
-
-        //connect(m_canDevice, &QCanBusDevice::framesReceived, this, &MainWindow::processReceivedFrames);
-        //connect(m_canDevice, &QCanBusDevice::framesWritten, this, &MainWindow::processFramesWritten);
-
-        mCanDevice->setConfigurationParameter(QCanBusDevice::BitRateKey, SET_BIT_RATE_CAN_125); // baud rate
-        //mCanDevice->setConfigurationParameter(QCanBusDevice::ErrorFilterKey, QVariant(0x1ffffff));
-
-        connectPeakCAN();
-
-    }
-}
-
-void MainWindow::connectPeakCAN()
-{
-    mIsConnected = mCanDevice->connectDevice();
-    if (mIsConnected) {
-        qDebug("CanDevice connect ok.");
-    } else {
-        qDebug("CanDevice connect error.");
-    }
-}
-
-void MainWindow::disconnectPeakCAN()
-{
-    mCanDevice->disconnectDevice();
-
-    qDebug("CanDevice is closed");
-}
-
-void MainWindow::setBitRatePeakCan(int commandCanFreqInv)
-{
-    if (!!mCanDevice) mCanDevice->setConfigurationParameter(QCanBusDevice::BitRateKey, commandCanFreqInv); // baud rate
-    qDebug()<< "set BitRate peakcan:" << commandCanFreqInv;
-}
-
 
 void MainWindow::on_pushButton_writePeakCan_clicked()
 {
-    int CanId = 2;
-    sendCaptureDeviceMsg(CanId);
+   // int CanId = 2;
+   // sendCaptureDeviceMsg(CanId);
+     qDebug() << "on_pushButton_writePeakCan";
 }
 
 
 void MainWindow::on_pushButton_readPeakCan_clicked()
 {
-    processReceivedFrames();
+  //  processReceivedFrames();
+    qDebug() << "on_pushButton_readPeakCan";
 }
 
 
 void MainWindow::on_pushButton_closePeakCan_clicked()
 {
-    disconnectPeakCAN();
+  //  disconnectPeakCAN();
+    qDebug() << "on_pushButton_closePeakCan";
 }
-
-QString MainWindow::handlePeakCanParsing(QCanBusFrame frame)
-{
-    QString message;
-    message = frame.toString();
-//    qDebug()<< message;
-
-    return(message);
-} // форматирование данных от адаптера PEAKCAN
 
 
 
